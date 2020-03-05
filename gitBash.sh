@@ -8,7 +8,7 @@ if [[ -z "$1" ]]; then
 		release = "0.0";
 		echo "empty";
 	fi
-	release = "${release}1";
+	release = "$release 1";
 	echo $release > "releaseGit";
 	git commit -am "release$release";
 else 
