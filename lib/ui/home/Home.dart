@@ -1,8 +1,8 @@
+import 'package:docup/ui/mainPage/NavigatorView.dart';
 import 'package:flutter/material.dart';
 import 'package:docup/ui/widgets/Header.dart';
 import 'package:docup/ui/home/ReminderList.dart';
 import 'package:docup/ui/home/SearchBox.dart';
-import 'package:docup/ui/home/notification/NotificationPage.dart';
 import 'package:docup/ui/home/notification/Notification.dart';
 
 import 'package:docup/ui/home/iDoctor/IDoctor.dart';
@@ -10,6 +10,10 @@ import 'package:docup/constants/strings.dart';
 import 'package:docup/models/Doctor.dart';
 
 class Home extends StatelessWidget {
+  final ValueChanged<String> onPush;
+
+  Home({Key key, @required this.onPush}) : super(key: key);
+
   Widget _intro(double width) => ListView(
         padding: EdgeInsets.only(right: width * .075),
         shrinkWrap: true,
@@ -43,10 +47,7 @@ class Home extends StatelessWidget {
               Header(
                   child: GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => NotificationPage()));
+                        onPush(NavigatorRoutes.notificationView);
                       },
                       child: HomeNotification())),
               Container(
@@ -56,7 +57,9 @@ class Home extends StatelessWidget {
               Container(
                 height: 20,
               ),
-              SearchBox(),
+              SearchBox(
+                onPush: onPush
+              ),
               SizedBox(
                 height: 30,
               ),
@@ -80,6 +83,7 @@ class Home extends StatelessWidget {
               IDoctor(
                 doctor: Doctor('دکتر زهرا شادلو', 'متخصص پوست', 'اقدسیه',
                     Image(image: AssetImage(' ')), null),
+                onPush: onPush,
               ),
             ],
           ))

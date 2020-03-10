@@ -1,18 +1,21 @@
 import 'package:docup/constants/colors.dart';
 import 'package:docup/models/Doctor.dart';
+import 'package:docup/ui/mainPage/NavigatorView.dart';
 import 'package:docup/ui/widgets/Header.dart';
 import 'package:flutter/material.dart';
 
 import 'package:docup/ui/panel/chatPage/ChatPage.dart';
 
 import 'PanelMenu.dart';
+import 'illnessPage/IllnessPage.dart';
 
 enum PanelStates { PATIENT_DATA, DOCTOR_CHAT, VIDEO_CALL }
 
 class Panel extends StatefulWidget {
   final Doctor doctor;
+  final ValueChanged<String> onPush;
 
-  Panel({Key key, this.doctor}) : super(key: key);
+  Panel({Key key, this.doctor, @required this.onPush}) : super(key: key);
 
   @override
   PanelState createState() {
@@ -23,17 +26,38 @@ class Panel extends StatefulWidget {
 class PanelState extends State<Panel> {
   PanelStates _state = PanelStates.DOCTOR_CHAT;
 
+  Map<PanelStates, Widget> children() => {
+        PanelStates.PATIENT_DATA: IllnessPage(
+          doctor: widget.doctor,
+          onPush: widget.onPush,
+        ),
+        PanelStates.DOCTOR_CHAT: ChatPage(
+          doctor: widget.doctor,
+          onPush: widget.onPush,
+        ),
+        PanelStates.VIDEO_CALL: ChatPage(
+          doctor: widget.doctor,
+          onPush: widget.onPush,
+        ),
+      };
+
   void _showPanelMenu() {
-    Navigator.pushNamedAndRemoveUntil(context, '/panelMenu', (route) => true);
+    widget.onPush(NavigatorRoutes.panelMenu);
+  }
+
+  void _showSearchPage() {
+    widget.onPush(NavigatorRoutes.searchView);
   }
 
   Widget _header() => Header(
           child: Row(
         children: <Widget>[
           GestureDetector(
-              onTap: () {_showPanelMenu();},
+              onTap: () {
+                _showPanelMenu();
+              },
               child: Container(
-                padding: EdgeInsets.only(top: 15, right: 10),
+                padding: EdgeInsets.only(top: 15, left: 10, right: 10),
                 child: Image(
                   image: AssetImage('assets/panelList.png'),
                   height: 40,
@@ -43,7 +67,7 @@ class PanelState extends State<Panel> {
           Container(
             padding: EdgeInsets.only(top: 15, left: 5),
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {_showSearchPage();},
               child: Icon(
                 Icons.search,
                 size: 30,
@@ -71,7 +95,9 @@ class PanelState extends State<Panel> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 RaisedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    _switchTab(PanelStates.VIDEO_CALL);
+                  },
                   color: (_state == PanelStates.VIDEO_CALL
                       ? IColors.red
                       : Colors.white),
@@ -92,7 +118,9 @@ class PanelState extends State<Panel> {
                   elevation: 5,
                 ),
                 RaisedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    _switchTab(PanelStates.DOCTOR_CHAT);
+                  },
                   color: (_state == PanelStates.DOCTOR_CHAT
                       ? IColors.red
                       : Colors.white),
@@ -112,7 +140,9 @@ class PanelState extends State<Panel> {
                   elevation: 5,
                 ),
                 RaisedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    _switchTab(PanelStates.PATIENT_DATA);
+                  },
                   color: (_state == PanelStates.PATIENT_DATA
                       ? IColors.red
                       : Colors.white),
@@ -137,6 +167,13 @@ class PanelState extends State<Panel> {
     );
   }
 
+  void _switchTab(PanelStates state) {
+    if (_state != state)
+      setState(() {
+        _state = state;
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -144,12 +181,13 @@ class PanelState extends State<Panel> {
           BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
       child: Column(
         children: <Widget>[
-          _header(),
-          _tabs(MediaQuery.of(context).size.width),
-          SizedBox(
-            height: 20,
+          Hero(
+            tag: "panelHeader",
+            transitionOnUserGestures: true,
+            child: _header(),
           ),
-          Expanded(flex: 2, child: ChatPage(doctor: widget.doctor,))
+          _tabs(MediaQuery.of(context).size.width),
+          Expanded(flex: 2, child: children()[_state])
         ],
       ),
     );
